@@ -1,0 +1,49 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>KV Clipboard</title>
+</head>
+
+<body>
+    <header>
+        <h2>KV Clipboard</h2>
+        UUID: <span id="uuid"></span> <br>
+        Name: <span id="name"></span> <br>
+        Password: <span id="password">...</span> <br>
+        IP保护: <span id="ip-protect">...</span> <br>
+        过期时间: <span id="time">...</span> <br>
+        <span id="status">Requesting clipboard...</span>
+    </header>
+    <article>
+        <textarea title="clipboard" class="textarea" contenteditable="true"></textarea>
+        <br>
+        <div id="actions">
+            <button id="copy" onclick="copy()">复制</button>
+            <button id="delete" onclick="clearclipboard()">删除</button>
+            <button id="refresh" onclick="refresh()">刷新</button>
+            <button id="save" onclick="save()">保存</button>
+            <button id="set-password" onclick="setpassword()">设置密码</button>
+            <button id="set-ip-protect" onclick="setip()">设置IP保护</button>
+            <button id="set-time" onclick="settime()">设置过期时间</button>
+            <button id="raw" onclick="copyRaw()">复制raw地址</button>
+        </div>
+        </div>
+    </article>
+    <footer>
+        <p>
+            Powered by <a href="https://github.com/RavelloH/kv-clipboard">KV Clipboard</a>. Made by <a
+                href="https://github.com/RavelloH">RavelloH</a>.
+        </p>
+    </footer>
+
+
+
+
+
+    <script src="main.js"></script>
+</body>
+
+</html>
