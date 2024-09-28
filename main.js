@@ -53,7 +53,10 @@ function clearclipboard() {
     });
 }
 
-async function refresh() {
+async function refresh(password="") {
+  if (password == "" && document.querySelector("#password").innerHTML !== "..." && document.querySelector("#password").innerHTML !== "未设置") {
+    password = document.querySelector("#password").innerHTML;
+  }
   // 预先检查
   document.querySelector("#name").innerHTML = window.location.pathname.replace(
     "/",
@@ -64,7 +67,7 @@ async function refresh() {
     await stringToUUID(window.location.pathname.replace("/", ""))
   ).substring(0, 36);
   document.querySelector("#uuid").innerHTML = uuid;
-  getClipboard(uuid, "", false)
+  getClipboard(uuid, password, false)
     .then((response) => response.json())
     .then((data) => {
       if (data.message == "未找到数据") {
@@ -72,6 +75,8 @@ async function refresh() {
         document.querySelector("#password").innerHTML = "未设置";
         document.querySelector("#ip-protect").innerHTML = "未设置";
         document.querySelector("#time").innerHTML = "未设置";
+      } else if (data.message == "无效的密码") {
+        refresh(prompt("请输入密码"))
       } else {
         document.querySelector("#status").innerHTML = data.message;
         document.querySelector("textarea").value = data.data;
