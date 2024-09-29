@@ -88,3 +88,8 @@ textarea:focus {
 .textarea:focus {
   border-color: #3677f0;
 }
+
+article {
+  display: flex;
+  flex-direction: column;
+}
