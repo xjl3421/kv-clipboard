@@ -278,10 +278,11 @@ async function handleImageUpload(event) {
     // 显示预览
     showImagePreview(base64);
     
-    message("图片已添加，可以点击保存");
+    // 直接更新状态，不使用message函数临时显示
+    document.querySelector("#status").innerHTML = "图片已添加，可以点击保存";
   } catch (error) {
     console.error("处理图片失败:", error);
-    message("处理图片失败: " + error.message);
+    document.querySelector("#status").innerHTML = "处理图片失败: " + error.message;
   }
 }
 
