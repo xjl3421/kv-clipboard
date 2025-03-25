@@ -290,7 +290,8 @@ async function main() {
   // 若为主页，随机跳转
   if (
     window.location.pathname === "/" ||
-    window.location.pathname === "/404.html"
+    window.location.pathname === "/404.html" ||
+    window.location.pathname === "/index.html"
   ) {
     // 随机生成4位字符串
     const randomString = Math.random().toString(36).substring(2, 6);
@@ -298,6 +299,15 @@ async function main() {
   } else {
     // 添加文件上传事件监听
     document.getElementById('image-upload').addEventListener('change', handleImageUpload);
+    
+    // 添加上传按钮点击事件 - 修复上传按钮无反应问题
+    const uploadButton = document.querySelector('.upload-btn button');
+    if (uploadButton) {
+      uploadButton.addEventListener('click', function(e) {
+        e.preventDefault(); // 阻止默认行为
+        document.getElementById('image-upload').click(); // 触发文件选择
+      });
+    }
     
     // 添加文本变化事件监听
     document.querySelector("textarea").addEventListener('input', handleTextChange);
