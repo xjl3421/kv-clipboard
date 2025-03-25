@@ -195,3 +195,8 @@ footer a:hover {
     gap: 5px;
   }
 }
+
+article {
+  display: flex;
+  flex-direction: column;
+}
