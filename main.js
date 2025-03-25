@@ -120,10 +120,28 @@ function save() {
     .querySelector("#time")
     .innerHTML.replace("未设置", 365 * 24 * 60 * 60 * 1000);
   const uuid = document.querySelector("#uuid").innerHTML;
-  setClipboard(data, password, safeIP, expiredTime, uuid)
-    .then((response) => response.json())
-    .then((data) => {
+
+  // 状态提示
+  document.querySelector("#status").innerHTML = "正在保存...";
+  
+  // 先删除数据，然后再保存
+  deleteClipboard(uuid, password)
+    .then(response => response.json())
+    .then(deleteData => {
+      console.log("删除结果:", deleteData);
+      
+      // 不论删除成功与否，都继续保存
+      return setClipboard(data, password, safeIP, expiredTime, uuid);
+    })
+    .then(response => response.json())
+    .then(data => {
       document.querySelector("#status").innerHTML = data.message;
+      message("保存成功");
+    })
+    .catch(error => {
+      document.querySelector("#status").innerHTML = "保存失败";
+      console.error("保存过程出错:", error);
+      alert("保存失败: " + error);
     });
 }
 
