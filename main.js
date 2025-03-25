@@ -84,6 +84,9 @@ async function refresh(password="") {
           data.password || "未设置";
         document.querySelector("#ip-protect").innerHTML = data.safeIP;
         document.querySelector("#time").innerHTML = data.expiredAt;
+        
+        // 检查是否为图片
+        handleTextChange();
       }
       console.log(data);
     })
@@ -110,6 +113,14 @@ function setClipboard(data, password, safeIP, expiredTime, uuid) {
 
 function save() {
   const data = document.querySelector("textarea").value;
+  
+  // 检查内容长度是否超过1MB
+  if (data.length > 1024 * 1024) {
+    message("内容长度超过1MB，无法保存");
+    document.querySelector("#status").innerHTML = "错误: 内容过长，请减少内容后再提交";
+    return; // 终止保存过程
+  }
+  
   const password = document
     .querySelector("#password")
     .innerHTML.replace("未设置", "");
@@ -171,6 +182,110 @@ function deleteClipboard(uuid, password) {
   });
 }
 
+// 图片处理相关函数
+
+// 将图片转换为Base64
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+// 检测字符串是否为Base64图片
+function isBase64Image(str) {
+  if (!str || typeof str !== 'string') return false;
+  
+  // 基本格式检查: data:image/[type];base64,[data]
+  const regex = /^data:image\/(jpeg|jpg|png|gif|bmp|webp|svg\+xml);base64,/;
+  return regex.test(str);
+}
+
+// 从Base64计算图片大小（单位：KB）
+function getBase64Size(base64String) {
+  // 去掉data:image部分
+  const split = base64String.split(',');
+  const base64 = split.length > 1 ? split[1] : split[0];
+  // 计算Base64解码后的大小
+  const sizeInBytes = (base64.length * 3) / 4 - 
+      (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
+  return (sizeInBytes / 1024).toFixed(2);
+}
+
+// 显示图片预览
+function showImagePreview(base64Image) {
+  const container = document.getElementById('image-preview-container');
+  const preview = document.getElementById('image-preview');
+  const info = document.getElementById('image-info');
+  
+  preview.src = base64Image;
+  
+  // 等待图片加载完成后更新信息
+  preview.onload = () => {
+    const width = preview.naturalWidth;
+    const height = preview.naturalHeight;
+    const size = getBase64Size(base64Image);
+    
+    info.textContent = `尺寸: ${width}×${height} | 大小: ${size}KB`;
+    container.classList.remove('hidden');
+  };
+}
+
+// 关闭图片预览
+function closeImagePreview() {
+  document.getElementById('image-preview-container').classList.add('hidden');
+}
+
+// 处理文本内容变化，检测是否为图片
+function handleTextChange() {
+  const content = document.querySelector("textarea").value.trim();
+  if (isBase64Image(content)) {
+    showImagePreview(content);
+  } else if (!document.getElementById('image-preview-container').classList.contains('hidden')) {
+    closeImagePreview();
+  }
+}
+
+// 处理图片上传
+async function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  try {
+    document.querySelector("#status").innerHTML = "正在处理图片...";
+    
+    // 检查文件大小（限制为5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      message("图片过大，请选择5MB以下的图片");
+      return;
+    }
+    
+    // 转换为Base64
+    const base64 = await fileToBase64(file);
+    
+    // 检查Base64内容长度是否超过1MB
+    if (base64.length > 1024 * 1024) {
+      message("图片转换后超过1MB，无法保存");
+      document.querySelector("#status").innerHTML = "错误: 内容过长，请选择小一些的图片";
+      return;
+    }
+    
+    // 更新文本区域
+    document.querySelector("textarea").value = base64;
+    
+    // 显示预览
+    showImagePreview(base64);
+    
+    message("图片已添加，可以点击保存");
+  } catch (error) {
+    console.error("处理图片失败:", error);
+    message("处理图片失败: " + error.message);
+  }
+}
+
+// 初始化函数增加图片处理相关事件绑定
 async function main() {
   // 若为主页，随机跳转
   if (
@@ -181,7 +296,14 @@ async function main() {
     const randomString = Math.random().toString(36).substring(2, 6);
     window.location.href = "/" + randomString;
   } else {
-    refresh();
+    // 添加文件上传事件监听
+    document.getElementById('image-upload').addEventListener('change', handleImageUpload);
+    
+    // 添加文本变化事件监听
+    document.querySelector("textarea").addEventListener('input', handleTextChange);
+    
+    // 刷新内容
+    await refresh();
   }
 }
 

@@ -42,7 +42,22 @@
     <article class="glass-container">
         <div class="textarea-container">
             <textarea title="clipboard" class="textarea" contenteditable="true"></textarea>
+            
+            <!-- 添加图片预览区域 -->
+            <div id="image-preview-container" class="hidden">
+                <div class="image-preview-header">
+                    <span>图片预览</span>
+                    <button class="close-preview" onclick="closeImagePreview()">×</button>
+                </div>
+                <div class="image-preview-content">
+                    <img id="image-preview" src="" alt="预览图片">
+                </div>
+                <div class="image-preview-footer">
+                    <span id="image-info">尺寸: 0×0 | 大小: 0KB</span>
+                </div>
+            </div>
         </div>
+        
         <div id="actions">
             <button id="copy" onclick="copy()">复制</button>
             <button id="delete" onclick="clearclipboard()">删除</button>
@@ -52,6 +67,12 @@
             <button id="set-ip-protect" onclick="setip()">设置IP保护</button>
             <button id="set-time" onclick="settime()">设置过期时间</button>
             <button id="raw" onclick="copyRaw()">复制raw地址</button>
+            
+            <!-- 添加图片上传按钮 -->
+            <label for="image-upload" class="upload-btn">
+                <button>上传图片</button>
+            </label>
+            <input type="file" id="image-upload" accept="image/*" style="display:none">
         </div>
     </article>
     
