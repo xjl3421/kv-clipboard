@@ -1,25 +1,48 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>KV Clipboard</title>
 </head>
 
 <body>
-    <header>
+    <header class="glass-container">
         <h2>KV Clipboard</h2>
-        UUID: <span id="uuid"></span> <br>
-        Name: <span id="name"></span> <br>
-        Password: <span id="password">...</span> <br>
-        IP保护: <span id="ip-protect">...</span> <br>
-        过期时间: <span id="time">...</span> <br>
-        <span id="status">Requesting clipboard...</span>
+        <div class="info-container">
+            <div class="info-item">
+                <span class="info-label">UUID:</span>
+                <span class="info-value" id="uuid"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Name:</span>
+                <span class="info-value" id="name"></span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Password:</span>
+                <span class="info-value" id="password">...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">IP保护:</span>
+                <span class="info-value" id="ip-protect">...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">过期时间:</span>
+                <span class="info-value" id="time">...</span>
+            </div>
+        </div>
+        <div id="status">Requesting clipboard...</div>
     </header>
-    <article>
-        <textarea title="clipboard" class="textarea" contenteditable="true"></textarea>
-        <br>
+    
+    <article class="glass-container">
+        <div class="textarea-container">
+            <textarea title="clipboard" class="textarea" contenteditable="true"></textarea>
+        </div>
         <div id="actions">
             <button id="copy" onclick="copy()">复制</button>
             <button id="delete" onclick="clearclipboard()">删除</button>
@@ -30,18 +53,14 @@
             <button id="set-time" onclick="settime()">设置过期时间</button>
             <button id="raw" onclick="copyRaw()">复制raw地址</button>
         </div>
-        </div>
     </article>
-    <footer>
+    
+    <footer class="glass-container">
         <p>
             Powered by <a href="https://github.com/RavelloH/kv-clipboard">KV Clipboard</a>. Made by <a
                 href="https://github.com/RavelloH">RavelloH</a>.
         </p>
     </footer>
-
-
-
-
 
     <script src="main.js"></script>
     <script defer src="https://analytics.ravelloh.top/script.js" data-website-id="3a6c8985-013d-4695-8c04-bd17d6a55064"></script>
