@@ -47,14 +47,20 @@ function clearclipboard() {
       document.querySelector("#status").innerHTML = data.message;
 
       console.log(data);
+
+      window.location.reload();
     })
     .catch((error) => {
       alert(error);
     });
 }
 
-async function refresh(password="") {
-  if (password == "" && document.querySelector("#password").innerHTML !== "..." && document.querySelector("#password").innerHTML !== "未设置") {
+async function refresh(password = "") {
+  if (
+    password == "" &&
+    document.querySelector("#password").innerHTML !== "..." &&
+    document.querySelector("#password").innerHTML !== "未设置"
+  ) {
     password = document.querySelector("#password").innerHTML;
   }
   // 预先检查
@@ -76,7 +82,7 @@ async function refresh(password="") {
         document.querySelector("#ip-protect").innerHTML = "未设置";
         document.querySelector("#time").innerHTML = "未设置";
       } else if (data.message == "无效的密码") {
-        refresh(prompt("请输入密码"))
+        refresh(prompt("请输入密码"));
       } else {
         document.querySelector("#status").innerHTML = data.message;
         document.querySelector("textarea").value = data.data;
@@ -84,7 +90,7 @@ async function refresh(password="") {
           data.password || "未设置";
         document.querySelector("#ip-protect").innerHTML = data.safeIP;
         document.querySelector("#time").innerHTML = data.expiredAt;
-        
+
         // 检查是否为图片
         handleTextChange();
       }
@@ -96,6 +102,15 @@ async function refresh(password="") {
 }
 
 function setClipboard(data, password, safeIP, expiredTime, uuid) {
+  // 处理 expiredTime，支持 ISO 字符串或毫秒数
+  let expiredMs = expiredTime;
+  if (typeof expiredTime === "string" && !/^\d+$/.test(expiredTime)) {
+    // 如果是 ISO 字符串，转换为毫秒差值
+    expiredMs = new Date(expiredTime).getTime() - Date.now();
+    // 防止负数
+    if (expiredMs < 0) expiredMs = 0;
+  }
+
   return fetch(`${KVCacheURL}/api?mode=set`, {
     method: "POST",
     headers: {
@@ -105,7 +120,7 @@ function setClipboard(data, password, safeIP, expiredTime, uuid) {
       data: data,
       password: password,
       safeIP: safeIP,
-      expiredTime: expiredTime,
+      expiredTime: expiredMs,
       uuid: uuid,
     }),
   });
@@ -113,14 +128,15 @@ function setClipboard(data, password, safeIP, expiredTime, uuid) {
 
 function save() {
   const data = document.querySelector("textarea").value;
-  
+
   // 检查内容长度是否超过1MB
   if (data.length > 1024 * 1024) {
     message("内容长度超过1MB，无法保存");
-    document.querySelector("#status").innerHTML = "错误: 内容过长，请减少内容后再提交";
+    document.querySelector("#status").innerHTML =
+      "错误: 内容过长，请减少内容后再提交";
     return; // 终止保存过程
   }
-  
+
   const password = document
     .querySelector("#password")
     .innerHTML.replace("未设置", "");
@@ -134,22 +150,17 @@ function save() {
 
   // 状态提示
   document.querySelector("#status").innerHTML = "正在保存...";
-  
-  // 先删除数据，然后再保存
-  deleteClipboard(uuid, password)
-    .then(response => response.json())
-    .then(deleteData => {
-      console.log("删除结果:", deleteData);
-      
-      // 不论删除成功与否，都继续保存
-      return setClipboard(data, password, safeIP, expiredTime, uuid);
-    })
-    .then(response => response.json())
-    .then(data => {
+
+  setClipboard(data, password, safeIP, expiredTime, uuid)
+    .then((response) => response.json())
+    .then((data) => {
       document.querySelector("#status").innerHTML = data.message;
+      document.querySelector("#password").innerHTML = data.password || "未设置";
+      document.querySelector("#ip-protect").innerHTML = data.safeIP || "未设置";
+      document.querySelector("#time").innerHTML = data.expiredAt || "未设置";
       message("保存成功");
     })
-    .catch(error => {
+    .catch((error) => {
       document.querySelector("#status").innerHTML = "保存失败";
       console.error("保存过程出错:", error);
       alert("保存失败: " + error);
@@ -190,14 +201,14 @@ function fileToBase64(file) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
+    reader.onerror = (error) => reject(error);
   });
 }
 
 // 检测字符串是否为Base64图片
 function isBase64Image(str) {
-  if (!str || typeof str !== 'string') return false;
-  
+  if (!str || typeof str !== "string") return false;
+
   // 基本格式检查: data:image/[type];base64,[data]
   const regex = /^data:image\/(jpeg|jpg|png|gif|bmp|webp|svg\+xml);base64,/;
   return regex.test(str);
@@ -206,36 +217,37 @@ function isBase64Image(str) {
 // 从Base64计算图片大小（单位：KB）
 function getBase64Size(base64String) {
   // 去掉data:image部分
-  const split = base64String.split(',');
+  const split = base64String.split(",");
   const base64 = split.length > 1 ? split[1] : split[0];
   // 计算Base64解码后的大小
-  const sizeInBytes = (base64.length * 3) / 4 - 
-      (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
+  const sizeInBytes =
+    (base64.length * 3) / 4 -
+    (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
   return (sizeInBytes / 1024).toFixed(2);
 }
 
 // 显示图片预览
 function showImagePreview(base64Image) {
-  const container = document.getElementById('image-preview-container');
-  const preview = document.getElementById('image-preview');
-  const info = document.getElementById('image-info');
-  
+  const container = document.getElementById("image-preview-container");
+  const preview = document.getElementById("image-preview");
+  const info = document.getElementById("image-info");
+
   preview.src = base64Image;
-  
+
   // 等待图片加载完成后更新信息
   preview.onload = () => {
     const width = preview.naturalWidth;
     const height = preview.naturalHeight;
     const size = getBase64Size(base64Image);
-    
+
     info.textContent = `尺寸: ${width}×${height} | 大小: ${size}KB`;
-    container.classList.remove('hidden');
+    container.classList.remove("hidden");
   };
 }
 
 // 关闭图片预览
 function closeImagePreview() {
-  document.getElementById('image-preview-container').classList.add('hidden');
+  document.getElementById("image-preview-container").classList.add("hidden");
 }
 
 // 处理文本内容变化，检测是否为图片
@@ -243,7 +255,11 @@ function handleTextChange() {
   const content = document.querySelector("textarea").value.trim();
   if (isBase64Image(content)) {
     showImagePreview(content);
-  } else if (!document.getElementById('image-preview-container').classList.contains('hidden')) {
+  } else if (
+    !document
+      .getElementById("image-preview-container")
+      .classList.contains("hidden")
+  ) {
     closeImagePreview();
   }
 }
@@ -252,37 +268,39 @@ function handleTextChange() {
 async function handleImageUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
-  
+
   try {
     document.querySelector("#status").innerHTML = "正在处理图片...";
-    
+
     // 检查文件大小（限制为5MB）
     if (file.size > 5 * 1024 * 1024) {
       message("图片过大，请选择5MB以下的图片");
       return;
     }
-    
+
     // 转换为Base64
     const base64 = await fileToBase64(file);
-    
+
     // 检查Base64内容长度是否超过1MB
     if (base64.length > 1024 * 1024) {
       message("图片转换后超过1MB，无法保存");
-      document.querySelector("#status").innerHTML = "错误: 内容过长，请选择小一些的图片";
+      document.querySelector("#status").innerHTML =
+        "错误: 内容过长，请选择小一些的图片";
       return;
     }
-    
+
     // 更新文本区域
     document.querySelector("textarea").value = base64;
-    
+
     // 显示预览
     showImagePreview(base64);
-    
+
     // 直接更新状态，不使用message函数临时显示
     document.querySelector("#status").innerHTML = "图片已添加，可以点击保存";
   } catch (error) {
     console.error("处理图片失败:", error);
-    document.querySelector("#status").innerHTML = "处理图片失败: " + error.message;
+    document.querySelector("#status").innerHTML =
+      "处理图片失败: " + error.message;
   }
 }
 
@@ -299,20 +317,24 @@ async function main() {
     window.location.href = "/" + randomString;
   } else {
     // 添加文件上传事件监听
-    document.getElementById('image-upload').addEventListener('change', handleImageUpload);
-    
+    document
+      .getElementById("image-upload")
+      .addEventListener("change", handleImageUpload);
+
     // 添加上传按钮点击事件 - 修复上传按钮无反应问题
-    const uploadButton = document.querySelector('.upload-btn button');
+    const uploadButton = document.querySelector(".upload-btn button");
     if (uploadButton) {
-      uploadButton.addEventListener('click', function(e) {
+      uploadButton.addEventListener("click", function (e) {
         e.preventDefault(); // 阻止默认行为
-        document.getElementById('image-upload').click(); // 触发文件选择
+        document.getElementById("image-upload").click(); // 触发文件选择
       });
     }
-    
+
     // 添加文本变化事件监听
-    document.querySelector("textarea").addEventListener('input', handleTextChange);
-    
+    document
+      .querySelector("textarea")
+      .addEventListener("input", handleTextChange);
+
     // 刷新内容
     await refresh();
   }
@@ -341,8 +363,10 @@ function setip() {
 }
 
 function settime() {
-  document.querySelector("#time").innerHTML =
-    prompt("请输入过期时间(单位为小时)");
+  let hour = prompt("请输入过期时间(单位为小时)");
+  document.querySelector("#time").innerHTML = new Date(
+    Date.now() + hour * 60 * 60 * 1000
+  ).toISOString();
 }
 
 function copyRaw() {
