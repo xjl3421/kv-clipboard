@@ -1,6 +1,6 @@
 // KV Clipboard
 
-const KVCacheURL = "https://cache.ravelloh.top";
+const KVCacheURL = "https://kv-cache-gray.vercel.app";
 // const KVCacheURL = "http://localhost:3000";
 
 async function stringToUUID(str) {
